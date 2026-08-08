@@ -10,6 +10,9 @@ import Inventory from '../pages/Inventory';
 import Reports from '../pages/Reports';
 import Profile from '../pages/Profile';
 import NotFound from '../pages/NotFound';
+import PredictionHistory from '../pages/PredictionHistory';
+import Settings from '../pages/Settings';
+import About from '../pages/About';
 
 /**
  * AppRoutes defines the routing hierarchy of the application.
@@ -28,8 +31,11 @@ export default function AppRoutes() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/upload" element={<Upload />} />
           <Route path="/inventory" element={<Inventory />} />
+          <Route path="/history" element={<PredictionHistory />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/about" element={<About />} />
         </Route>
       </Route>
 

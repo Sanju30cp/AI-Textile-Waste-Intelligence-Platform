@@ -1,43 +1,27 @@
-import React, { useState, useRef } from 'react';
-import { FiUploadCloud, FiFile, FiCheckCircle, FiLoader, FiCamera } from 'react-icons/fi';
+import React, { useState, useRef, useEffect } from 'react';
+import { FiUploadCloud, FiFile, FiCheckCircle, FiLoader, FiCamera, FiAlertCircle } from 'react-icons/fi';
 
 export default function Upload() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
+  const [loadingText, setLoadingText] = useState('Uploading...');
   const fileInputRef = useRef(null);
 
-  const mockPredictions = [
-    {
-      fabric: 'Cotton Polyester Blend',
-      material: '65% Cotton, 35% Polyester',
-      recyclability: 'High (82%)',
-      recyclabilityColor: 'text-emerald-600 bg-emerald-50 border-emerald-100',
-      recommendation: 'Ideal for mechanical fiber recovery. Sort and shred for yarn spinning or use in premium upholstery fillings.'
-    },
-    {
-      fabric: 'Pure Cotton Denim',
-      material: '100% Cotton',
-      recyclability: 'Optimal (95%)',
-      recyclabilityColor: 'text-emerald-700 bg-emerald-100/60 border-emerald-200',
-      recommendation: 'Shred and spin back into recycled denim yarns. Perfect for closed-loop clothing manufacture.'
-    },
-    {
-      fabric: 'Synthetic Sportswear',
-      material: '88% Polyester, 12% Spandex',
-      recyclability: 'Medium (55%)',
-      recyclabilityColor: 'text-amber-600 bg-amber-50 border-amber-100',
-      recommendation: 'Difficult to recycle mechanically. Suitable for chemical depolymerization or composite reinforcement fabrics.'
-    },
-    {
-      fabric: 'Heavy Wool Blend',
-      material: '80% Wool, 20% Nylon',
-      recyclability: 'High (78%)',
-      recyclabilityColor: 'text-emerald-600 bg-emerald-50 border-emerald-100',
-      recommendation: 'Shred to recover wool fibers. Recommended for thermo-acoustic insulation panels or industrial felt.'
+  useEffect(() => {
+    let interval;
+    if (analyzing) {
+      const steps = ['Uploading...', 'Analyzing...', 'Predicting...', 'Generating Recommendation...'];
+      let idx = 0;
+      setLoadingText(steps[idx]);
+      interval = setInterval(() => {
+        idx = Math.min(idx + 1, steps.length - 1);
+        setLoadingText(steps[idx]);
+      }, 700);
     }
-  ];
+    return () => clearInterval(interval);
+  }, [analyzing]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -66,36 +50,67 @@ export default function Upload() {
     fileInputRef.current.click();
   };
 
-  const runAnalysis = () => {
+  const runAnalysis = async () => {
     if (!selectedFile) return;
 
     setAnalyzing(true);
     setResult(null);
 
-    // Simulate FastAPI deep learning image analysis
-    setTimeout(() => {
+    try {
+      // 1. Upload the image
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      
+      let uploadRes;
+      try {
+        uploadRes = await fetch("http://localhost:8000/upload", {
+          method: "POST",
+          body: formData,
+        });
+      } catch (err) {
+        throw new Error("Server down. Could not connect to API.");
+      }
+      
+      if (uploadRes.status === 413) throw new Error("Image too large. Maximum size is 5MB.");
+      if (uploadRes.status === 400) throw new Error("Unsupported format. Use JPG, PNG, WEBP.");
+      if (!uploadRes.ok) throw new Error("Upload failed due to server error.");
+      const uploadData = await uploadRes.json();
+      
+      // 2. Call predict endpoint
+      let predictRes;
+      try {
+        predictRes = await fetch(`http://localhost:8000/predict?filename=${uploadData.filename}`, {
+          method: "POST"
+        });
+      } catch (err) {
+        throw new Error("Server down during prediction.");
+      }
+      
+      if (predictRes.status === 422 || predictRes.status === 500) throw new Error("No prediction could be made. AI Model failed.");
+      if (predictRes.status === 503) throw new Error("Database unavailable.");
+      if (!predictRes.ok) throw new Error("Prediction failed.");
+      const prediction = await predictRes.json();
+      
+      // Map to UI expectations
+      setResult({
+        success: true,
+        product_type: prediction.product_type || 'Unknown',
+        confidence: prediction.confidence || 0,
+        waste_category: prediction.waste_category || 'Unknown',
+        recyclability: prediction.recyclability || 'Unknown',
+        recommendation: prediction.recommendation || 'No recommendation available',
+        sustainability_score: prediction.sustainability_score || 0
+      });
+
+    } catch (error) {
+      console.error("Error analyzing image:", error);
+      setResult({
+        success: false,
+        errorMessage: error.message || 'An unknown error occurred.',
+      });
+    } finally {
       setAnalyzing(false);
-      // Pick a random mock result based on the filename/random index
-      const randomIndex = Math.floor(Math.random() * mockPredictions.length);
-      const prediction = mockPredictions[randomIndex];
-      setResult(prediction);
-
-      // Save to mock inventory logs
-      const savedLogs = JSON.parse(localStorage.getItem('textileInventory') || '[]');
-      const newLog = {
-        id: `TX-${1000 + savedLogs.length + 3}`,
-        fabric: prediction.fabric,
-        material: prediction.material,
-        quantity: `${Math.floor(Math.random() * 800) + 100} kg`,
-        date: new Date().toISOString().split('T')[0],
-        recyclability: prediction.recyclability.includes('High') || prediction.recyclability.includes('Optimal') ? 'High' : 'Medium',
-        status: 'Sorted',
-        imageUrl: previewUrl
-      };
-      savedLogs.unshift(newLog);
-      localStorage.setItem('textileInventory', JSON.stringify(savedLogs));
-
-    }, 2200);
+    }
   };
 
   const clearUpload = () => {
@@ -157,7 +172,7 @@ export default function Upload() {
                   <span className="text-sm font-semibold text-emerald-600 hover:text-emerald-700">Click to upload</span>
                   <span className="text-sm text-slate-500"> or drag and drop</span>
                 </div>
-                <p className="text-xs text-slate-400">PNG, JPG, or WEBP (Max 10MB)</p>
+                <p className="text-xs text-slate-400">PNG, JPG, or WEBP (Max 5MB)</p>
               </div>
             )}
           </div>
@@ -172,7 +187,7 @@ export default function Upload() {
               {analyzing ? (
                 <>
                   <FiLoader className="h-5 w-5 animate-spin" />
-                  <span>Running AI Classification...</span>
+                  <span>{loadingText}</span>
                 </>
               ) : (
                 <>
@@ -197,53 +212,69 @@ export default function Upload() {
                 </div>
               </div>
               <div className="text-center space-y-1">
-                <p className="text-sm font-semibold text-slate-700">Extracting Fabric Patterns...</p>
-                <p className="text-xs text-slate-400">Comparing with synthetic & natural weave libraries.</p>
+                <p className="text-sm font-semibold text-slate-700">{loadingText}</p>
+                <p className="text-xs text-slate-400">Please wait while we process the textile image.</p>
               </div>
             </div>
           ) : result ? (
-            <div className="flex-1 flex flex-col justify-between space-y-6">
-              
-              <div className="space-y-4">
-                {/* Result Headline */}
-                <div className="flex items-center gap-2.5 text-emerald-600">
-                  <FiCheckCircle className="h-6 w-6 shrink-0" />
-                  <span className="font-bold text-slate-800 text-lg">Analysis Complete</span>
-                </div>
+            <div className="flex-1 flex flex-col justify-center h-full">
+              {result.success ? (
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    {/* Result Headline */}
+                    <div className="flex items-center gap-2.5 text-emerald-600">
+                      <FiCheckCircle className="h-6 w-6 shrink-0" />
+                      <span className="font-bold text-slate-800 text-lg">Analysis Complete</span>
+                    </div>
 
-                {/* Grid */}
-                <div className="grid grid-cols-2 gap-4 border-y border-slate-100 py-4">
-                  <div>
-                    <span className="text-xs text-slate-400 uppercase tracking-wider block font-semibold">Fabric Type</span>
-                    <span className="text-base font-bold text-slate-800">{result.fabric}</span>
+                    {/* Grid */}
+                    <div className="grid grid-cols-2 gap-4 border-y border-slate-100 py-4">
+                      <div>
+                        <span className="text-xs text-slate-400 uppercase tracking-wider block font-semibold">Prediction</span>
+                        <span className="text-base font-bold text-slate-800">{result.product_type}</span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-slate-400 uppercase tracking-wider block font-semibold">Confidence</span>
+                        <span className="text-base font-bold text-slate-800">{result.confidence}%</span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-slate-400 uppercase tracking-wider block font-semibold">Waste Category</span>
+                        <span className="text-base font-bold text-slate-800">{result.waste_category}</span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-slate-400 uppercase tracking-wider block font-semibold">Sustainability Score</span>
+                        <span className="text-base font-bold text-emerald-600">{result.sustainability_score}%</span>
+                      </div>
+                    </div>
+
+                    {/* Recyclability score */}
+                    <div>
+                      <span className="text-xs text-slate-400 uppercase tracking-wider block font-semibold mb-1">Recyclability</span>
+                      <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${result.recyclability === 'High' ? 'text-emerald-700 bg-emerald-100/60 border-emerald-200' : 'text-amber-600 bg-amber-50 border-amber-100'}`}>
+                        {result.recyclability}
+                      </span>
+                    </div>
+
+                    {/* Actionable recommendation */}
+                    <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
+                      <span className="text-xs text-slate-400 uppercase tracking-wider block font-semibold mb-1.5">Recommendation</span>
+                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                        {result.recommendation}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center p-6 space-y-4 text-center">
+                  <div className="h-16 w-16 rounded-full bg-rose-50 flex items-center justify-center text-rose-500">
+                    <FiAlertCircle className="h-8 w-8" />
                   </div>
                   <div>
-                    <span className="text-xs text-slate-400 uppercase tracking-wider block font-semibold">Material Composition</span>
-                    <span className="text-base font-bold text-slate-800">{result.material}</span>
+                    <h4 className="text-lg font-bold text-slate-800 mb-1">Processing Failed</h4>
+                    <p className="text-sm text-slate-600 max-w-xs">{result.errorMessage}</p>
                   </div>
                 </div>
-
-                {/* Recyclability score */}
-                <div>
-                  <span className="text-xs text-slate-400 uppercase tracking-wider block font-semibold mb-1">Recyclability Score</span>
-                  <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${result.recyclabilityColor}`}>
-                    {result.recyclability}
-                  </span>
-                </div>
-
-                {/* Actionable recommendation */}
-                <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
-                  <span className="text-xs text-slate-400 uppercase tracking-wider block font-semibold mb-1.5">Recycling Recommendation</span>
-                  <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                    {result.recommendation}
-                  </p>
-                </div>
-              </div>
-
-              <div className="text-xs text-slate-400 text-center font-medium bg-slate-50 border border-slate-100 py-2 rounded-lg">
-                Log saved successfully to inventory list.
-              </div>
-
+              )}
             </div>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400 space-y-2">

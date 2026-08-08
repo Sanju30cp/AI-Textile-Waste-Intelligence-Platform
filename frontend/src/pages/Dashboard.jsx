@@ -13,12 +13,14 @@ import {
   LinearScale, 
   PointElement, 
   LineElement, 
+  BarElement,
+  ArcElement,
   Title, 
   Tooltip, 
   Legend, 
   Filler 
 } from 'chart.js';
-import { Line } from 'react-chartjs-2';
+import { Line, Bar, Doughnut, Pie } from 'react-chartjs-2';
 import { Link } from 'react-router-dom';
 
 // Register Chart.js components
@@ -27,6 +29,8 @@ ChartJS.register(
   LinearScale,
   PointElement,
   LineElement,
+  BarElement,
+  ArcElement,
   Title,
   Tooltip,
   Legend,
@@ -38,9 +42,19 @@ export default function Dashboard() {
   // Mock Metric Data
   const metrics = [
     { 
-      name: 'Total Waste Logged', 
-      value: '24.8 Tons', 
-      change: '+12.4%', 
+      name: 'Total Predictions', 
+      value: '142', 
+      change: '+12% this week', 
+      isPositive: true, 
+      icon: FiActivity, 
+      color: 'bg-indigo-500',
+      textColor: 'text-indigo-600',
+      bgColor: 'bg-indigo-50' 
+    },
+    { 
+      name: 'Recyclable Items', 
+      value: '84', 
+      change: '59% of total', 
       isPositive: true, 
       icon: FiTrash2, 
       color: 'bg-emerald-500',
@@ -48,9 +62,9 @@ export default function Dashboard() {
       bgColor: 'bg-emerald-50' 
     },
     { 
-      name: 'Recyclable Waste', 
-      value: '18.2 Tons', 
-      change: '73.4% Recycled', 
+      name: 'Reusable Items', 
+      value: '45', 
+      change: '32% of total', 
       isPositive: true, 
       icon: FiTrendingUp, 
       color: 'bg-teal-500',
@@ -58,24 +72,14 @@ export default function Dashboard() {
       bgColor: 'bg-teal-50' 
     },
     { 
-      name: 'CO₂ Savings', 
-      value: '42.5 MT', 
-      change: '+3.1 MT saved', 
+      name: 'Average Sustainability Score', 
+      value: '82%', 
+      change: '+4% vs last month', 
       isPositive: true, 
       icon: FiWind, 
       color: 'bg-cyan-500',
       textColor: 'text-cyan-600',
       bgColor: 'bg-cyan-50' 
-    },
-    { 
-      name: 'Circularity Score', 
-      value: '84 / 100', 
-      change: 'Top 10% Industry', 
-      isPositive: true, 
-      icon: FiActivity, 
-      color: 'bg-green-600',
-      textColor: 'text-green-600',
-      bgColor: 'bg-green-50' 
     },
   ];
 
@@ -87,30 +91,67 @@ export default function Dashboard() {
     { id: 'TX-0999', fabric: 'Pure Wool Knits', material: '100% Wool', quantity: '310 kg', date: '2026-07-26', recyclability: 'High', status: 'Processed' },
   ];
 
-  // Chart Setup
-  const chartData = {
+  // 1. Product Distribution (Pie)
+  const productDistributionData = {
+    labels: ['Denim', 'Dress', 'Jacket', 'Mixed'],
+    datasets: [
+      {
+        data: [45, 25, 20, 10],
+        backgroundColor: [
+          'rgba(34, 197, 94, 0.8)',
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(168, 85, 247, 0.8)',
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  // 2. Waste Distribution (Doughnut)
+  const wasteDistributionData = {
+    labels: ['Recyclable', 'Reusable', 'Repairable', 'Upcyclable'],
+    datasets: [
+      {
+        data: [59, 25, 10, 6],
+        backgroundColor: [
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(14, 165, 233, 0.8)',
+          'rgba(249, 115, 22, 0.8)',
+          'rgba(217, 70, 239, 0.8)',
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  // 3. Monthly Prediction Count (Bar)
+  const monthlyPredictionData = {
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+    datasets: [
+      {
+        label: 'Predictions',
+        data: [65, 78, 60, 92, 115, 105, 142],
+        backgroundColor: 'rgba(99, 102, 241, 0.8)',
+        borderRadius: 4,
+      },
+    ],
+  };
+
+  // 4. Sustainability Score (Line)
+  const sustainabilityScoreData = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
     datasets: [
       {
         fill: true,
-        label: 'Waste Logged (Tons)',
-        data: [2.1, 3.4, 2.8, 4.2, 5.1, 4.8, 6.2],
-        borderColor: 'rgb(34, 197, 94)',
-        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-        tension: 0.4,
-        pointRadius: 4,
-        pointBackgroundColor: 'rgb(34, 197, 94)',
-      },
-      {
-        fill: true,
-        label: 'Recycled Waste (Tons)',
-        data: [1.4, 2.5, 2.0, 3.1, 3.8, 3.7, 4.8],
+        label: 'Average Score (%)',
+        data: [72, 74, 73, 76, 79, 81, 82],
         borderColor: 'rgb(20, 184, 166)',
-        backgroundColor: 'rgba(20, 184, 166, 0.05)',
+        backgroundColor: 'rgba(20, 184, 166, 0.1)',
         tension: 0.4,
         pointRadius: 4,
         pointBackgroundColor: 'rgb(20, 184, 166)',
-      }
+      },
     ],
   };
 
@@ -119,13 +160,13 @@ export default function Dashboard() {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top',
+        position: 'bottom',
         labels: {
           usePointStyle: true,
           boxWidth: 8,
           font: {
             family: 'ui-sans-serif, system-ui, sans-serif',
-            size: 12
+            size: 11
           }
         }
       },
@@ -135,24 +176,6 @@ export default function Dashboard() {
         bodyFont: { size: 12 },
         padding: 12,
         cornerRadius: 8,
-      }
-    },
-    scales: {
-      y: {
-        grid: {
-          color: '#f1f5f9',
-        },
-        ticks: {
-          font: { size: 11, family: 'ui-sans-serif, system-ui, sans-serif' }
-        }
-      },
-      x: {
-        grid: {
-          display: false
-        },
-        ticks: {
-          font: { size: 11, family: 'ui-sans-serif, system-ui, sans-serif' }
-        }
       }
     }
   };
@@ -181,45 +204,45 @@ export default function Dashboard() {
         })}
       </div>
 
-      {/* Main Content: Chart & Recent Activities */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Statistics Chart */}
-        <div className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs flex flex-col">
+      {/* 4 Charts Grid */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Monthly Prediction Count */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs flex flex-col">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-slate-800 text-lg">Waste Processing Trends</h3>
-            <button className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50">
-              <FiDownload className="h-3.5 w-3.5" />
-              <span>Export CSV</span>
-            </button>
+            <h3 className="font-bold text-slate-800 text-lg">Monthly Prediction Count</h3>
           </div>
-          <div className="h-72 w-full relative">
-            <Line data={chartData} options={chartOptions} />
+          <div className="h-64 w-full relative">
+            <Bar data={monthlyPredictionData} options={chartOptions} />
           </div>
         </div>
 
-        {/* Action Quick Links / Mini Stats */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs flex flex-col justify-between">
-          <div>
-            <h3 className="font-bold text-slate-800 text-lg mb-4">Circular Actions</h3>
-            <p className="text-sm text-slate-500 mb-6">
-              Classify and analyze new textile logs using AI vision models.
-            </p>
+        {/* Sustainability Score */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs flex flex-col">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-slate-800 text-lg">Sustainability Score Trend</h3>
           </div>
-          <div className="space-y-3">
-            <Link 
-              to="/upload" 
-              className="flex w-full items-center justify-between rounded-xl bg-emerald-600 px-4 py-3.5 text-sm font-semibold text-white shadow-md shadow-emerald-600/10 hover:bg-emerald-700 transition-all duration-150 cursor-pointer"
-            >
-              <span>Scan / Upload Image</span>
-              <FiArrowRight className="h-4 w-4" />
-            </Link>
-            <Link 
-              to="/inventory" 
-              className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-all duration-150"
-            >
-              <span>Manage Logs</span>
-              <FiArrowRight className="h-4 w-4 text-slate-400" />
-            </Link>
+          <div className="h-64 w-full relative">
+            <Line data={sustainabilityScoreData} options={chartOptions} />
+          </div>
+        </div>
+
+        {/* Product Distribution */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs flex flex-col">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-slate-800 text-lg">Product Distribution</h3>
+          </div>
+          <div className="h-64 w-full relative">
+            <Pie data={productDistributionData} options={chartOptions} />
+          </div>
+        </div>
+
+        {/* Waste Distribution */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs flex flex-col">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-slate-800 text-lg">Waste Distribution</h3>
+          </div>
+          <div className="h-64 w-full relative">
+            <Doughnut data={wasteDistributionData} options={chartOptions} />
           </div>
         </div>
       </div>

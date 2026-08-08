@@ -48,3 +48,10 @@ yarn-error.log*
 .idea/
 .DS_Store
 Thumbs.db
+
+# Machine Learning Data & Models
+backend/ml/dataset/selected_images/
+backend/ml/dataset/*.pkl
+backend/ml/dataset/*.csv
+backend/ml/models/
+backend/uploads/

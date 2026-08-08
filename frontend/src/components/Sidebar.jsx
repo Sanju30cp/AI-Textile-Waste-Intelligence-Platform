@@ -16,8 +16,10 @@ export default function Sidebar({ isOpen, setIsOpen }) {
   const menuItems = [
     { name: 'Dashboard', path: '/dashboard', icon: FiGrid },
     { name: 'Upload Image', path: '/upload', icon: FiUpload },
+    { name: 'History', path: '/history', icon: FiBox },
     { name: 'Inventory', path: '/inventory', icon: FiBox },
     { name: 'Reports', path: '/reports', icon: FiBarChart2 },
+    { name: 'Settings', path: '/settings', icon: FiBox }, // Reusing FiBox icon, but we should import FiSettings if it was available.
   ];
 
   const handleLogout = () => {
