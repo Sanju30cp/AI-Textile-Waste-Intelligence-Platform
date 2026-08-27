@@ -34,5 +34,6 @@ app.include_router(prediction_router)
 @app.get("/")
 def root():
     return {
-        "message": "Welcome to Textile Waste Intelligence Platform API"
+        "message": "Welcome to Textile Waste Intelligence Platform API",
+        "status": "running"
     }

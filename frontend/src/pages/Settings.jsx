@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiMoon, FiSun, FiGlobe, FiInfo, FiLogOut, FiChevronRight } from 'react-icons/fi';
 import { useNavigate, Link } from 'react-router-dom';
 
@@ -6,6 +6,15 @@ export default function Settings() {
   const navigate = useNavigate();
   const [theme, setTheme] = useState('light');
   const [language, setLanguage] = useState('English');
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -40,7 +49,6 @@ export default function Settings() {
           >
             <option value="light">Light Mode</option>
             <option value="dark">Dark Mode</option>
-            <option value="system">System Default</option>
           </select>
         </div>
 

@@ -8,10 +8,32 @@
   --color-text-main: #1F2937;
 }
 
+/* Dark mode overrides mapping light colors to dark equivalents */
+.dark {
+  --color-background-slate: #0f172a; /* slate-900 */
+  --color-card: #1e293b; /* slate-800 */
+  --color-text-main: #f8fafc; /* slate-50 */
+  
+  /* Override Tailwind slate palette for dark mode */
+  --color-white: #1e293b; /* Make white bg dark */
+  --color-slate-50: #0f172a; /* slate-900 */
+  --color-slate-100: #1e293b; /* slate-800 */
+  --color-slate-200: #334155; /* slate-700 */
+  --color-slate-300: #475569; /* slate-600 */
+  --color-slate-400: #64748b; /* slate-500 */
+  --color-slate-500: #94a3b8; /* slate-400 */
+  --color-slate-600: #cbd5e1; /* slate-300 */
+  --color-slate-700: #e2e8f0; /* slate-200 */
+  --color-slate-800: #f8fafc; /* slate-50 */
+  --color-slate-900: #ffffff; /* white */
+  --color-black: #ffffff; /* Make black text white */
+}
+
 body {
   background-color: var(--color-background-slate);
   color: var(--color-text-main);
   font-family: ui-sans-serif, system-ui, sans-serif;
   margin: 0;
   padding: 0;
+  transition: background-color 0.3s, color 0.3s;
 }

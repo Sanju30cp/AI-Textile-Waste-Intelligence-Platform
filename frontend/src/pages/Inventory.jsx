@@ -6,20 +6,14 @@ export default function Inventory() {
   const [statusFilter, setStatusFilter] = useState('All');
   const [inventory, setInventory] = useState([]);
 
-  // Load from local storage or set initial mock data
+  // Load from local storage or initialize empty
   useEffect(() => {
     const savedInventory = localStorage.getItem('textileInventory');
     if (savedInventory) {
       setInventory(JSON.parse(savedInventory));
     } else {
-      const initialInventory = [
-        { id: 'TX-1002', fabric: 'Polyester Blend', material: '80% Poly / 20% Cotton', quantity: '420 kg', date: '2026-07-29', recyclability: 'Medium', status: 'Pending Review' },
-        { id: 'TX-1001', fabric: '100% Cotton Denim', material: '100% Cotton', quantity: '1,250 kg', date: '2026-07-28', recyclability: 'High', status: 'Processed' },
-        { id: 'TX-1000', fabric: 'Nylon Activewear', material: '90% Nylon / 10% Spandex', quantity: '180 kg', date: '2026-07-27', recyclability: 'Low', status: 'Sorted' },
-        { id: 'TX-0999', fabric: 'Pure Wool Knits', material: '100% Wool', quantity: '310 kg', date: '2026-07-26', recyclability: 'High', status: 'Processed' },
-      ];
-      localStorage.setItem('textileInventory', JSON.stringify(initialInventory));
-      setInventory(initialInventory);
+      localStorage.setItem('textileInventory', JSON.stringify([]));
+      setInventory([]);
     }
   }, []);
 

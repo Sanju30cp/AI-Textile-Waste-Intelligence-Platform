@@ -34,7 +34,17 @@ async function request(endpoint, options = {}) {
     }
 
     if (!response.ok) {
-      const errorMsg = data?.message || data || response.statusText || 'Request failed';
+      let errorMsg = 'Request failed';
+      if (data?.detail) {
+        // FastAPI often returns 'detail' as a string or array of errors
+        errorMsg = Array.isArray(data.detail) ? data.detail[0].msg : data.detail;
+      } else if (data?.message) {
+        errorMsg = data.message;
+      } else if (typeof data === 'string') {
+        errorMsg = data;
+      } else {
+        errorMsg = response.statusText;
+      }
       throw new Error(errorMsg);
     }
 

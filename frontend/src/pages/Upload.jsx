@@ -92,7 +92,7 @@ export default function Upload() {
       const prediction = await predictRes.json();
       
       // Map to UI expectations
-      setResult({
+      const newResult = {
         success: true,
         product_type: prediction.product_type || 'Unknown',
         confidence: prediction.confidence || 0,
@@ -100,7 +100,25 @@ export default function Upload() {
         recyclability: prediction.recyclability || 'Unknown',
         recommendation: prediction.recommendation || 'No recommendation available',
         sustainability_score: prediction.sustainability_score || 0
-      });
+      };
+      setResult(newResult);
+
+      // Automatically add to inventory
+      if (newResult.product_type !== 'Unknown' && newResult.product_type !== 'Model not loaded') {
+        const savedInventory = localStorage.getItem('textileInventory');
+        const inventoryArray = savedInventory ? JSON.parse(savedInventory) : [];
+        const newEntry = {
+          id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
+          fabric: newResult.product_type,
+          material: 'Analysis Based',
+          quantity: '1 item',
+          date: new Date().toISOString().split('T')[0],
+          recyclability: newResult.recyclability,
+          status: 'Pending Review'
+        };
+        inventoryArray.unshift(newEntry); // Add to beginning
+        localStorage.setItem('textileInventory', JSON.stringify(inventoryArray));
+      }
 
     } catch (error) {
       console.error("Error analyzing image:", error);

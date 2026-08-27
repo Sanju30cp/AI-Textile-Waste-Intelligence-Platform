@@ -13,14 +13,45 @@ import {
 export default function Sidebar({ isOpen, setIsOpen }) {
   const navigate = useNavigate();
 
-  const menuItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: FiGrid },
-    { name: 'Upload Image', path: '/upload', icon: FiUpload },
-    { name: 'History', path: '/history', icon: FiBox },
-    { name: 'Inventory', path: '/inventory', icon: FiBox },
-    { name: 'Reports', path: '/reports', icon: FiBarChart2 },
-    { name: 'Settings', path: '/settings', icon: FiBox }, // Reusing FiBox icon, but we should import FiSettings if it was available.
-  ];
+  const userRole = localStorage.getItem('userRole');
+
+  const roleMenus = {
+    'Administrator': [
+      { name: 'Dashboard', path: '/admin/dashboard', icon: FiGrid },
+      { name: 'User Management', path: '/coming-soon', icon: FiBox },
+      { name: 'System Monitoring', path: '/coming-soon', icon: FiBox },
+      { name: 'Platform Analytics', path: '/coming-soon', icon: FiBarChart2 },
+      { name: 'Reports', path: '/reports', icon: FiBarChart2 },
+    ],
+    'Textile Manufacturer': [
+      { name: 'Dashboard', path: '/manufacturer/dashboard', icon: FiGrid },
+      { name: 'Production Waste', path: '/coming-soon', icon: FiBox },
+      { name: 'Material Analysis', path: '/upload', icon: FiUpload },
+      { name: 'Waste Classification', path: '/history', icon: FiBox },
+      { name: 'Recovery Insights', path: '/coming-soon', icon: FiBarChart2 },
+      { name: 'Reports', path: '/reports', icon: FiBarChart2 },
+    ],
+    'Recycling Facility Operator': [
+      { name: 'Dashboard', path: '/recycling/dashboard', icon: FiGrid },
+      { name: 'Waste Inventory', path: '/inventory', icon: FiBox },
+      { name: 'AI Analysis', path: '/upload', icon: FiUpload },
+      { name: 'Recycling Analysis', path: '/history', icon: FiBox },
+      { name: 'Recovery Statistics', path: '/coming-soon', icon: FiBarChart2 },
+      { name: 'Reports', path: '/reports', icon: FiBarChart2 },
+    ],
+    'Sustainability Manager': [
+      { name: 'Dashboard', path: '/sustainability/dashboard', icon: FiGrid },
+      { name: 'Sustainability Metrics', path: '/coming-soon', icon: FiBarChart2 },
+      { name: 'Carbon Reduction', path: '/coming-soon', icon: FiBox },
+      { name: 'Waste Diversion', path: '/coming-soon', icon: FiBox },
+      { name: 'ESG Analytics', path: '/coming-soon', icon: FiBarChart2 },
+      { name: 'Environmental Impact', path: '/coming-soon', icon: FiBox },
+      { name: 'Circularity Score', path: '/coming-soon', icon: FiBox },
+      { name: 'Reports', path: '/reports', icon: FiBarChart2 },
+    ]
+  };
+
+  const filteredMenuItems = roleMenus[userRole] || [];
 
   const handleLogout = () => {
     // Clear any auth tokens or state if needed
@@ -68,7 +99,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
         {/* Navigation Links */}
         <nav className="flex-1 space-y-1.5 px-4 py-6 overflow-y-auto">
-          {menuItems.map((item) => {
+          {filteredMenuItems.map((item) => {
             const Icon = item.icon;
             return (
               <NavLink

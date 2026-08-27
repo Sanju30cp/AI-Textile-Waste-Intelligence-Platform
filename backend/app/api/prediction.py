@@ -2,7 +2,7 @@ from fastapi import APIRouter, File, UploadFile, Request, Depends, HTTPException
 from sqlalchemy.orm import Session
 import os
 
-from app.schemas.prediction import PredictionResponse
+from app.schemas.prediction import PredictionResponse, PredictionHistoryResponse
 from app.services.prediction_service import prediction_service
 from app.database.database import get_db
 from app.models.prediction_history import PredictionHistory
@@ -90,3 +90,12 @@ async def predict(request: Request, filename: str, db: Session = Depends(get_db)
     except Exception as e:
         print(f"Server Error during prediction: {e}")
         raise HTTPException(status_code=503, detail="Database unavailable or server down.")
+
+@router.get("/history", response_model=list[PredictionHistoryResponse])
+async def get_prediction_history(db: Session = Depends(get_db)):
+    """
+    Retrieve the history of predictions from the database.
+    """
+    history = db.query(PredictionHistory).order_by(PredictionHistory.created_at.desc()).all()
+    return history
+

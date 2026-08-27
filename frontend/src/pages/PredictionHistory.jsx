@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiSearch, FiFilter, FiDownload, FiImage, FiCalendar, FiBox, FiList } from 'react-icons/fi';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export default function PredictionHistory() {
   const [searchProduct, setSearchProduct] = useState('');
@@ -7,28 +9,104 @@ export default function PredictionHistory() {
   const [searchDate, setSearchDate] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
 
-  // Dummy data representing PostgreSQL prediction_history table
-  const mockHistory = [
-    { id: 1, image_name: 'denim_jacket_1.jpg', product_type: 'Denim', confidence: 96.5, waste_category: 'Recyclable', recommendation: 'Fiber Recycling', date: '2026-08-01' },
-    { id: 2, image_name: 'cotton_dress_2.jpg', product_type: 'Dress', confidence: 88.2, waste_category: 'Reusable', recommendation: 'Donation', date: '2026-08-02' },
-    { id: 3, image_name: 'leather_jacket_3.jpg', product_type: 'Jacket', confidence: 91.0, waste_category: 'Repairable', recommendation: 'Repair and Reuse', date: '2026-08-03' },
-    { id: 4, image_name: 'mixed_fabric_4.jpg', product_type: 'Mixed', confidence: 75.4, waste_category: 'Upcyclable', recommendation: 'Upcycle to accessories', date: '2026-08-04' },
-    { id: 5, image_name: 'denim_jeans_5.jpg', product_type: 'Denim', confidence: 98.1, waste_category: 'Recyclable', recommendation: 'Fiber Recycling', date: '2026-08-05' },
-  ];
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/history');
+        if (response.ok) {
+          const data = await response.json();
+          setHistory(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch prediction history:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHistory();
+  }, []);
 
   const filters = ['All', 'Reusable', 'Recyclable', 'Repairable', 'Upcyclable'];
 
-  const filteredHistory = mockHistory.filter(item => {
+  const filteredHistory = history.filter(item => {
     // Filter logic
     if (activeFilter !== 'All' && item.waste_category !== activeFilter) return false;
     
     // Search logic
     if (searchProduct && !item.product_type.toLowerCase().includes(searchProduct.toLowerCase())) return false;
     if (searchCategory && !item.waste_category.toLowerCase().includes(searchCategory.toLowerCase())) return false;
-    if (searchDate && item.date !== searchDate) return false;
+    if (searchDate && item.created_at && !item.created_at.startsWith(searchDate)) return false;
 
     return true;
   });
+
+  const exportCSV = () => {
+    if (filteredHistory.length === 0) return;
+    
+    const headers = ['Product Type', 'Confidence', 'Waste Category', 'Recommendation', 'Date'];
+    const csvRows = [];
+    
+    csvRows.push(headers.join(','));
+    
+    for (const row of filteredHistory) {
+      const values = [
+        `"${row.product_type || ''}"`,
+        `"${row.confidence || 0}%"`,
+        `"${row.waste_category || ''}"`,
+        `"${(row.recommendation || '').replace(/"/g, '""')}"`,
+        `"${row.created_at ? new Date(row.created_at).toLocaleDateString() : ''}"`
+      ];
+      csvRows.push(values.join(','));
+    }
+    
+    const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(csvRows.join('\n'));
+    const link = document.createElement("a");
+    link.setAttribute("href", csvContent);
+    link.setAttribute("download", "prediction_history.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportPDF = () => {
+    if (filteredHistory.length === 0) return;
+    
+    const doc = new jsPDF();
+    
+    doc.setFontSize(18);
+    doc.text('Prediction History Report', 14, 22);
+    
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 30);
+    
+    const tableColumn = ["Product Type", "Confidence", "Waste Category", "Recommendation", "Date"];
+    const tableRows = [];
+    
+    filteredHistory.forEach(row => {
+      const rowData = [
+        row.product_type || '',
+        `${row.confidence || 0}%`,
+        row.waste_category || '',
+        row.recommendation || '',
+        row.created_at ? new Date(row.created_at).toLocaleDateString() : ''
+      ];
+      tableRows.push(rowData);
+    });
+    
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 40,
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [16, 185, 129] } // emerald-500
+    });
+    
+    doc.save('prediction_history.pdf');
+  };
 
   return (
     <div className="space-y-6">
@@ -40,11 +118,11 @@ export default function PredictionHistory() {
           <p className="text-sm text-slate-500">View and manage past AI classifications.</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-colors shadow-sm">
+          <button onClick={exportCSV} className="flex items-center gap-2 rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-colors shadow-sm cursor-pointer">
             <FiDownload className="h-4 w-4" />
             Export CSV
           </button>
-          <button className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors shadow-sm shadow-emerald-600/20">
+          <button onClick={exportPDF} className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors shadow-sm shadow-emerald-600/20 cursor-pointer">
             <FiDownload className="h-4 w-4" />
             Export PDF
           </button>
@@ -128,7 +206,15 @@ export default function PredictionHistory() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
-              {filteredHistory.length > 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-12 text-center text-slate-400">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <p>Loading prediction history...</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredHistory.length > 0 ? (
                 filteredHistory.map((row) => (
                   <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">
@@ -155,7 +241,7 @@ export default function PredictionHistory() {
                     <td className="px-6 py-4 text-slate-500 max-w-[200px] truncate" title={row.recommendation}>
                       {row.recommendation}
                     </td>
-                    <td className="px-6 py-4 text-slate-500 font-medium">{row.date}</td>
+                    <td className="px-6 py-4 text-slate-500 font-medium">{new Date(row.created_at).toLocaleDateString()}</td>
                   </tr>
                 ))
               ) : (

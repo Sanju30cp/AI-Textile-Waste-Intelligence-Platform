@@ -8,7 +8,7 @@ export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState('Collector');
+  const [role, setRole] = useState('Textile Manufacturer');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -170,10 +170,10 @@ export default function Register() {
                 onChange={(e) => setRole(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-4 text-sm text-slate-800 bg-white outline-hidden focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
               >
-                <option value="Collector">Waste Collector</option>
-                <option value="Auditor">Sustainability Auditor</option>
-                <option value="Recycler">Recycling Operator</option>
                 <option value="Administrator">Administrator</option>
+                <option value="Textile Manufacturer">Textile Manufacturer</option>
+                <option value="Recycling Facility Operator">Recycling Facility Operator</option>
+                <option value="Sustainability Manager">Sustainability Manager</option>
               </select>
             </div>
           </div>
