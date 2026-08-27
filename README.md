@@ -17,7 +17,7 @@ graph TD
 ## Features
 - **AI Classification**: Real-time identification of textile compositions using a custom PyTorch model (`product_classifier.pth`) based on the EfficientNet-B0 architecture.
 - **Sustainability Metrics**: Automatically scores recyclability and proposes actionable recommendations.
-- **Inventory Management**: Track and manage waste logs across their lifecycle.
+- **Inventory Management**: Track and manage waste logs across their lifecycle. The React dashboard is natively integrated with the backend PostgreSQL database via REST API to ensure synchronization of all inventory actions (updates, deletes).
 - **Rich Dashboard**: Visualization of circularity KPIs, product distributions, and environmental impact.
 - **Database Integration**: Comprehensive tracking of predictions natively stored in PostgreSQL (`PredictionHistory`), including IP addresses and status logging for ESG reporting.
 

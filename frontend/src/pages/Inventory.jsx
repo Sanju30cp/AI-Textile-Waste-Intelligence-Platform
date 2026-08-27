@@ -1,47 +1,55 @@
 import React, { useState, useEffect } from 'react';
 import { FiSearch, FiTrash2, FiEye, FiFilter, FiDownload } from 'react-icons/fi';
+import api from '../services/api';
 
 export default function Inventory() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [inventory, setInventory] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Load from local storage or initialize empty
   useEffect(() => {
-    const savedInventory = localStorage.getItem('textileInventory');
-    if (savedInventory) {
-      setInventory(JSON.parse(savedInventory));
-    } else {
-      localStorage.setItem('textileInventory', JSON.stringify([]));
-      setInventory([]);
-    }
+    fetchInventory();
   }, []);
 
-  const handleDelete = (id) => {
-    if (window.confirm(`Are you sure you want to delete entry ${id}?`)) {
-      const updated = inventory.filter(item => item.id !== id);
-      setInventory(updated);
-      localStorage.setItem('textileInventory', JSON.stringify(updated));
+  const fetchInventory = async () => {
+    try {
+      const data = await api.get('/inventory');
+      data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      setInventory(data);
+    } catch (err) {
+      console.error("Failed to fetch inventory:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleStatusChange = (id, newStatus) => {
-    const updated = inventory.map(item => {
-      if (item.id === id) {
-        return { ...item, status: newStatus };
+  const handleDelete = async (id) => {
+    if (window.confirm(`Are you sure you want to delete this entry?`)) {
+      try {
+        await api.delete(`/inventory/${id}`);
+        setInventory(inventory.filter(item => item.id !== id));
+      } catch (err) {
+        console.error("Failed to delete item:", err);
       }
-      return item;
-    });
-    setInventory(updated);
-    localStorage.setItem('textileInventory', JSON.stringify(updated));
+    }
+  };
+
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      await api.put(`/inventory/${id}`, { status: newStatus });
+      setInventory(inventory.map(item => item.id === id ? { ...item, status: newStatus } : item));
+    } catch (err) {
+      console.error("Failed to update status:", err);
+    }
   };
 
   // Filter Logic
   const filteredInventory = inventory.filter(item => {
     const matchesSearch = 
-      item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.fabric.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.material.toLowerCase().includes(searchTerm.toLowerCase());
+      (item.batch_id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.fabric_type || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.material_composition || '').toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'All' || item.status === statusFilter;
     
@@ -96,7 +104,11 @@ export default function Inventory() {
       {/* Inventory Table Card */}
       <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          {filteredInventory.length > 0 ? (
+          {loading ? (
+             <div className="text-center py-12 text-slate-400 space-y-2">
+               <p className="font-semibold text-slate-600">Loading Database...</p>
+             </div>
+          ) : filteredInventory.length > 0 ? (
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/70 text-slate-500 text-xs font-semibold uppercase tracking-wider border-b border-slate-100">
@@ -113,11 +125,11 @@ export default function Inventory() {
               <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
                 {filteredInventory.map((row) => (
                   <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 font-semibold text-slate-800">{row.id}</td>
-                    <td className="px-6 py-4">{row.fabric}</td>
-                    <td className="px-6 py-4 text-slate-500">{row.material}</td>
+                    <td className="px-6 py-4 font-semibold text-slate-800">{row.batch_id}</td>
+                    <td className="px-6 py-4">{row.fabric_type}</td>
+                    <td className="px-6 py-4 text-slate-500">{row.material_composition}</td>
                     <td className="px-6 py-4 font-medium">{row.quantity}</td>
-                    <td className="px-6 py-4 text-slate-500">{row.date}</td>
+                    <td className="px-6 py-4 text-slate-500">{row.collection_date}</td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
                         row.recyclability === 'High' 
@@ -152,7 +164,7 @@ export default function Inventory() {
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-3">
                         <button 
-                          onClick={() => alert(`Reviewing Waste Log ID: ${row.id}\nFabric: ${row.fabric}\nComposition: ${row.material}`)}
+                          onClick={() => alert(`Reviewing Waste Log ID: ${row.batch_id}\nFabric: ${row.fabric_type}\nComposition: ${row.material_composition}`)}
                           className="text-slate-400 hover:text-emerald-600 transition-colors p-1"
                           title="View Details"
                         >

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FiUploadCloud, FiFile, FiCheckCircle, FiLoader, FiCamera, FiAlertCircle } from 'react-icons/fi';
+import api from '../services/api';
 
 export default function Upload() {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -105,19 +106,19 @@ export default function Upload() {
 
       // Automatically add to inventory
       if (newResult.product_type !== 'Unknown' && newResult.product_type !== 'Model not loaded') {
-        const savedInventory = localStorage.getItem('textileInventory');
-        const inventoryArray = savedInventory ? JSON.parse(savedInventory) : [];
-        const newEntry = {
-          id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
-          fabric: newResult.product_type,
-          material: 'Analysis Based',
-          quantity: '1 item',
-          date: new Date().toISOString().split('T')[0],
-          recyclability: newResult.recyclability,
-          status: 'Pending Review'
-        };
-        inventoryArray.unshift(newEntry); // Add to beginning
-        localStorage.setItem('textileInventory', JSON.stringify(inventoryArray));
+        try {
+          await api.post('/inventory', {
+            batch_id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
+            fabric_type: newResult.product_type,
+            material_composition: 'Analysis Based',
+            quantity: '1.0',
+            recyclability: newResult.recyclability,
+            status: 'Pending Review',
+            collection_date: new Date().toISOString().split('T')[0]
+          });
+        } catch (inventoryError) {
+          console.error("Failed to log into inventory database:", inventoryError);
+        }
       }
 
     } catch (error) {
