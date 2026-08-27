@@ -15,11 +15,11 @@ graph TD
 ```
 
 ## Features
-- **AI Classification**: Real-time identification of textile compositions using PyTorch.
+- **AI Classification**: Real-time identification of textile compositions using a custom PyTorch model (`product_classifier.pth`) based on the EfficientNet-B0 architecture.
 - **Sustainability Metrics**: Automatically scores recyclability and proposes actionable recommendations.
 - **Inventory Management**: Track and manage waste logs across their lifecycle.
 - **Rich Dashboard**: Visualization of circularity KPIs, product distributions, and environmental impact.
-- **Robust Error Handling & Logging**: Comprehensive tracking of predictions with IP and status logging.
+- **Database Integration**: Comprehensive tracking of predictions natively stored in PostgreSQL (`PredictionHistory`), including IP addresses and status logging for ESG reporting.
 
 ## Installation Guide
 
@@ -64,7 +64,7 @@ The backend provides a RESTful API powered by FastAPI. When the server is runnin
 
 ### Core Endpoints:
 - `POST /upload`: Upload a textile image to the `uploads/` directory.
-- `POST /predict`: Submit a filename for AI classification. Returns prediction, confidence, sustainability score, and recommendations.
+- `POST /predict`: Submit a filename for AI classification. Returns prediction, confidence, sustainability score, and recommendations. All predictions are automatically logged to the PostgreSQL database for history tracking.
 
 ## Directory Structure
 
