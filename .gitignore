@@ -1,7 +1,9 @@
 # Python / Virtual Environment
 .venv/
+.venv-1/
 venv/
 env/
+ENV/
 __pycache__/
 *.py[cod]
 *$py.class
@@ -28,6 +30,7 @@ htmlcov/
 
 # Environment variables
 .env
+.env.*
 .env.local
 .env.*.local
 *.env
@@ -49,9 +52,17 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
-# Machine Learning Data & Models
+# Local runtime / generated files
+backend/uploads/
+backend/logs/
+frontend/dist/
+frontend/.env
+
+# ML / project artifacts
 backend/ml/dataset/selected_images/
 backend/ml/dataset/*.pkl
 backend/ml/dataset/*.csv
 backend/ml/models/
-backend/uploads/
+backend/reports/
+backend/test_images/
+frontend/smoke-test.pdf

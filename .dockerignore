@@ -1,0 +1,30 @@
+# Git
+.git
+.gitignore
+
+# Python
+.venv
+venv
+__pycache__
+*.py[cod]
+.pytest_cache
+.coverage
+htmlcov
+
+# Node
+node_modules
+frontend/node_modules
+frontend/dist
+npm-debug.log*
+
+# Project artifacts
+backend/uploads
+backend/logs
+backend/reports
+backend/tests
+frontend/smoke-test.pdf
+
+# OS/editor
+.vscode
+.DS_Store
+Thumbs.db

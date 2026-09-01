@@ -1,252 +1,251 @@
 # Textile Waste Intelligence Platform
 
-The **Textile Waste Intelligence Platform** is an AI-powered web application designed to support textile waste classification, inventory management, sustainability analysis, and circular-economy workflows.
+A full-stack AI platform for textile waste tracking, material classification, sustainability analysis, and circular-economy decision support.
 
-The system accepts a **textile/fabric image** and uses a custom **MobileNetV3-Large PyTorch model** to identify the textile material and provide a prediction confidence score.
+The project combines a React frontend, a FastAPI backend, a PostgreSQL database, and a PyTorch-based image classification model to help users identify textile materials, review prediction history, monitor waste inventory, and estimate sustainability outcomes.
 
-The predicted material is then used by the sustainability layer to provide recycling, reuse, and lifecycle recommendations.
+## Overview
 
----
+This solution is designed for textile manufacturers, recycling operators, sustainability teams, and administrators who need to:
 
-## Project Objective
+- classify textile/fabric images using AI
+- track textile inventory and waste categories
+- monitor sustainability and recycling indicators
+- review prediction history and analytics
+- manage user roles and access to system features
 
-The platform aims to assist in intelligent textile waste management by combining:
+## Key Features
 
-- AI-based textile material classification
-- Prediction confidence analysis
-- Sustainability and recycling recommendations
-- Textile waste inventory management
-- Prediction history and logging
-- Circularity and environmental-impact metrics
-- Role-based access control
-- React-based dashboard
-- FastAPI REST backend
-- PostgreSQL database
+- AI-powered textile material prediction from uploaded images
+- Sustainability scoring and recovery recommendations
+- Inventory management for textile waste records
+- Prediction history and analytics dashboards
+- Role-based authentication and authorization
+- Responsive React dashboard for operations and reporting
+- Docker-based setup for backend, frontend, and database services
 
----
+## Tech Stack
 
-# System Architecture
+### Frontend
+- React
+- Vite
+- React Router
+- Chart.js and react-chartjs-2
+- Tailwind CSS
+
+### Backend
+- FastAPI
+- SQLAlchemy
+- PostgreSQL
+- JWT authentication
+- Python standard packages for ML and sustainability utilities
+
+### AI / ML
+- PyTorch
+- Torchvision
+- PIL / image preprocessing
+- EfficientNet-based classifier integration
+
+## Architecture
 
 ```mermaid
-graph TD
-
-    A[React.js Frontend] -->|REST API| B[FastAPI Backend]
-
-    B --> C[AI Prediction Service]
-
-    C -->|Textile Image| D[MobileNetV3-Large]
-
-    D --> E[17 Textile Material Classes]
-
-    E --> F[Material + Confidence]
-
-    F --> G[Sustainability Recommendation Engine]
-
-    G --> H[Recycling / Reuse Recommendation]
-
-    B --> I[(PostgreSQL)]
-
-    I --> J[Prediction History]
-
-    I --> K[User Management]
-
-    I --> L[Textile Inventory]
-
-    L --> M[Circularity & Environmental Metrics]
+flowchart LR
+    A[React Frontend] -->|API requests| B[FastAPI Backend]
+    B --> C[Prediction Service]
+    C --> D[PyTorch Model]
+    B --> E[PostgreSQL Database]
+    B --> F[Sustainability Engine]
+    B --> G[Inventory + Analytics APIs]
+    H[User Auth / Roles] --> B
 ```
 
----
-
-# Main Workflow
+## Project Structure
 
 ```text
-Textile / Fabric Image
-          ↓
-     Image Upload
-          ↓
-      FastAPI API
-          ↓
- Image Preprocessing
-          ↓
- MobileNetV3-Large
-          ↓
- Material Classification
-          ↓
- Material + Confidence
-          ↓
- Sustainability Engine
-          ↓
- Recycling / Reuse Recommendation
-          ↓
- PostgreSQL
-          ↓
- React Dashboard
+.
+├── backend/
+│   ├── app/
+│   │   ├── api/
+│   │   ├── auth/
+│   │   ├── config/
+│   │   ├── database/
+│   │   ├── models/
+│   │   ├── routes/
+│   │   ├── schemas/
+│   │   ├── services/
+│   │   ├── utils/
+│   │   └── main.py
+│   ├── ml/
+│   │   ├── dataset/
+│   │   ├── models/
+│   │   └── ...
+│   ├── model/
+│   ├── tests/
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   └── uploads/
+├── frontend/
+│   ├── src/
+│   ├── public/
+│   ├── package.json
+│   ├── vite.config.js
+│   └── Dockerfile
+├── docker-compose.yml
+├── README.md
+└── .gitignore
 ```
 
----
+## AI Prediction Workflow
 
-# Features
+1. A user uploads a textile or fabric image.
+2. The backend validates the file type and size.
+3. The image is preprocessed and passed to the PyTorch model.
+4. The model predicts the textile class and confidence score.
+5. The result is stored in the database and returned to the frontend.
+6. Sustainability and recycling recommendations are generated based on the material and its properties.
 
-## 1. AI Textile Material Classification
+## Supported Material Classes
 
-The platform uses a custom-trained **MobileNetV3-Large** deep-learning model to classify textile/fabric images.
+The model is configured for textile material classification across a set of classes including:
 
-The model contains **17 material classes**.
+- Acrylic
+- Chenille
+- Corduroy
+- Cotton
+- Crepe
+- Denim
+- Felt
+- Fleece
+- Linen
+- Nylon
+- Polyester
+- Satin
+- Silk
+- Terrycloth
+- Velvet
+- Viscose
+- Wool
 
-### Supported Materials
+## Authentication and Roles
+
+The platform includes a role-based authorization system with roles such as:
+
+- Administrator
+- Textile Manufacturer
+- Recycling Facility Operator
+- Sustainability Manager
+
+These roles control access to actions such as upload, inventory updates, reports, and settings.
+
+## Prerequisites
+
+Before running the project, ensure you have:
+
+- Python 3.10+
+- Node.js 18+
+- npm
+- PostgreSQL
+- Docker and Docker Compose (optional but recommended)
+
+## Environment Configuration
+
+The backend expects environment variables such as:
+
+```env
+DATABASE_URL=postgresql://postgres:password@localhost:5432/textile_waste_db
+SECRET_KEY=your-secret-key
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+FRONTEND_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+```
+
+You can place these in a `.env` file inside the backend folder depending on your local setup.
+
+## Running the Project
+
+### Option 1: Using Docker Compose
+
+From the project root:
+
+```bash
+docker compose up --build
+```
+
+This runs:
+
+- PostgreSQL on port 5432
+- Backend on port 8000
+- Frontend on port 5173
+
+### Option 2: Run Backend Locally
+
+```bash
+cd backend
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### Option 3: Run Frontend Locally
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Then open the frontend at:
 
 ```text
-Acrylic
-Chenille
-Corduroy
-Cotton
-Crepe
-Denim
-Felt
-Fleece
-Linen
-Nylon
-Polyester
-Satin
-Silk
-Terrycloth
-Velvet
-Viscose
-Wool
+http://localhost:5173
 ```
 
----
+## Main API Features
 
-# 2. Image Prediction
+The backend exposes routes for:
 
-The user uploads a textile or fabric image through the application.
+- user registration and login
+- inventory creation and updates
+- image upload and prediction
+- prediction history retrieval
+- analytics and dashboard metrics
+- sustainability and recommendation endpoints
 
-The AI model performs:
+Typical endpoints include:
 
-```text
-Image
-  ↓
-Resize to 224 × 224
-  ↓
-Tensor Conversion
-  ↓
-ImageNet Normalization
-  ↓
-MobileNetV3-Large
-  ↓
-Softmax Probabilities
-  ↓
-Predicted Material
-  ↓
-Confidence Score
-```
+- `POST /auth/login`
+- `POST /users/register`
+- `POST /predict`
+- `POST /upload`
+- `GET /inventory`
+- `GET /analytics`
+- `GET /history`
 
-Example:
+## Model Notes
 
-```text
-==================================================
-TEXTILE PREDICTION
-==================================================
+The project uses a trained PyTorch classifier loaded through the model utilities. The model file and class mapping are expected under:
 
-Predicted Material : Cotton
-Confidence         : 87.43%
-```
+- `backend/ml/models/product_classifier.pth`
+- `backend/model/class_mapping.json`
 
----
+If the model file is missing, prediction endpoints may return a fallback response indicating the model is not loaded.
 
-# 3. Sustainability Recommendation
+## Use Cases
 
-The material prediction is passed to a separate sustainability/recommendation layer.
+- textile waste sorting and classification
+- operational inventory documentation
+- sustainability and recycling assessment
+- decision support for circular textile programs
+- data-backed reporting and traceability
 
-Example:
+## Notes
 
-```text
-Material:
-Cotton
+This project is intended as an AI-driven waste intelligence solution for textile operations. The current implementation focuses on material classification and sustainability-oriented workflow support rather than direct end-of-life recycling certification.
 
-Confidence:
-87.43%
+## License
 
-Sustainability:
-Recommended for further recycling/reuse analysis.
-```
-
-The sustainability module is separated from the image-classification model so that recommendation rules can be modified independently.
-
-> The current MobileNetV3-Large model performs **17-class material classification**. It does not directly classify images as recyclable or non-recyclable.
-
----
-
-# 4. Textile Waste Inventory
-
-The platform provides inventory management for textile waste.
-
-Users can manage:
-
-- Textile waste records
-- Material information
-- Waste quantities
-- Inventory status
-- Lifecycle information
-- AI prediction information
-- Sustainability recommendations
-
-Inventory operations include:
-
-- Create
-- Read
-- Update
-- Delete
-
----
-
-# 5. Prediction History
-
-AI predictions can be stored in PostgreSQL for future analysis and reporting.
-
-Prediction records can contain:
-
-```text
-Prediction ID
-Material
-Confidence
-Image information
-Timestamp
-User
-Status
-```
-
-This provides historical tracking of AI classification results.
-
----
-
-# 6. Dashboard
-
-The React dashboard provides visualization of textile waste and sustainability information.
-
-The dashboard can display:
-
-- Textile material distribution
-- Inventory statistics
-- AI prediction statistics
-- Prediction history
-- Sustainability recommendations
-- Circularity KPIs
-- Environmental-impact metrics
-
----
-
-# Machine Learning
-
-## Model Used
-
-The final model used in this project is:
-
-```text
-MobileNetV3-Large
-```
-
-The model was selected because it provides a good balance between:
+This project is currently not configured with a formal license file. Update this section if you plan to publish it publicly or distribute it under a chosen license.
 
 - Classification performance
 - Computational efficiency
