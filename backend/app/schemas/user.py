@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from enum import Enum
 
 class RoleEnum(str, Enum):
@@ -21,9 +21,9 @@ class UserLogin(BaseModel):
 
 class UserResponse(BaseModel):
     id: int
+    user_id: int
     full_name: str
     email: EmailStr
     role: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

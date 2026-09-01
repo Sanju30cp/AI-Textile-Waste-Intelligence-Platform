@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  database:
+    image: postgres:15
+    container_name: textile-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: textile_waste_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: textile-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@database:5432/textile_waste_db
+    depends_on:
+      - database
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: textile-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

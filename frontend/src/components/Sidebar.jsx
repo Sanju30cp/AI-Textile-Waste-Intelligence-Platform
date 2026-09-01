@@ -7,7 +7,7 @@ import {
   FiBarChart2, 
   FiLogOut, 
   FiX, 
-  FiFeather 
+  FiFeather
 } from 'react-icons/fi';
 
 export default function Sidebar({ isOpen, setIsOpen }) {
@@ -17,36 +17,31 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
   const roleMenus = {
     'Administrator': [
-      { name: 'Dashboard', path: '/admin/dashboard', icon: FiGrid },
-      { name: 'User Management', path: '/coming-soon', icon: FiBox },
-      { name: 'System Monitoring', path: '/coming-soon', icon: FiBox },
-      { name: 'Platform Analytics', path: '/coming-soon', icon: FiBarChart2 },
+      { name: 'Dashboard', path: '/dashboard', icon: FiGrid },
+      { name: 'Waste Inventory', path: '/inventory', icon: FiBox },
+      { name: 'Material Analysis', path: '/upload', icon: FiUpload },
+      { name: 'Prediction History', path: '/history', icon: FiBox },
       { name: 'Reports', path: '/reports', icon: FiBarChart2 },
+      { name: 'Settings', path: '/settings', icon: FiBox },
     ],
     'Textile Manufacturer': [
-      { name: 'Dashboard', path: '/manufacturer/dashboard', icon: FiGrid },
-      { name: 'Production Waste', path: '/coming-soon', icon: FiBox },
+      { name: 'Dashboard', path: '/dashboard', icon: FiGrid },
+      { name: 'Waste Inventory', path: '/inventory', icon: FiBox },
       { name: 'Material Analysis', path: '/upload', icon: FiUpload },
-      { name: 'Waste Classification', path: '/history', icon: FiBox },
-      { name: 'Recovery Insights', path: '/coming-soon', icon: FiBarChart2 },
+      { name: 'Prediction History', path: '/history', icon: FiBox },
       { name: 'Reports', path: '/reports', icon: FiBarChart2 },
     ],
     'Recycling Facility Operator': [
-      { name: 'Dashboard', path: '/recycling/dashboard', icon: FiGrid },
+      { name: 'Dashboard', path: '/dashboard', icon: FiGrid },
       { name: 'Waste Inventory', path: '/inventory', icon: FiBox },
-      { name: 'AI Analysis', path: '/upload', icon: FiUpload },
-      { name: 'Recycling Analysis', path: '/history', icon: FiBox },
-      { name: 'Recovery Statistics', path: '/coming-soon', icon: FiBarChart2 },
+      { name: 'Material Analysis', path: '/upload', icon: FiUpload },
+      { name: 'Prediction History', path: '/history', icon: FiBox },
       { name: 'Reports', path: '/reports', icon: FiBarChart2 },
     ],
     'Sustainability Manager': [
-      { name: 'Dashboard', path: '/sustainability/dashboard', icon: FiGrid },
-      { name: 'Sustainability Metrics', path: '/coming-soon', icon: FiBarChart2 },
-      { name: 'Carbon Reduction', path: '/coming-soon', icon: FiBox },
-      { name: 'Waste Diversion', path: '/coming-soon', icon: FiBox },
-      { name: 'ESG Analytics', path: '/coming-soon', icon: FiBarChart2 },
-      { name: 'Environmental Impact', path: '/coming-soon', icon: FiBox },
-      { name: 'Circularity Score', path: '/coming-soon', icon: FiBox },
+      { name: 'Dashboard', path: '/dashboard', icon: FiGrid },
+      { name: 'Waste Inventory', path: '/inventory', icon: FiBox },
+      { name: 'Prediction History', path: '/history', icon: FiBox },
       { name: 'Reports', path: '/reports', icon: FiBarChart2 },
     ]
   };
@@ -73,7 +68,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
       )}
 
       {/* Sidebar Container */}
-      <aside 
+      <aside
         className={`fixed top-0 bottom-0 left-0 z-50 flex w-72 flex-col border-r border-slate-200 bg-white shadow-sm transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}

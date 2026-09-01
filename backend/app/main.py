@@ -3,8 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database.database import Base, engine
 from app.routes.inventory import router as inventory_router
-from app.routes.user import router as user_router
+from app.routes.user import router as user_router, auth_router
 from app.api.prediction import router as prediction_router
+from app.routes.analytics import router as analytics_router
+from app.routes.feedback import router as feedback_router
+from app.routes.sustainability import router as sustainability_router, recommendations_router
+from app.config.config import FRONTEND_ORIGINS
 
 from app.models import user, inventory, prediction_history
 
@@ -19,7 +23,7 @@ app = FastAPI(
 # Enable CORS for React frontend integration - must be added before routes
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=FRONTEND_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -27,8 +31,13 @@ app.add_middleware(
 
 # Register routes
 app.include_router(user_router)
+app.include_router(auth_router)
 app.include_router(inventory_router)
 app.include_router(prediction_router)
+app.include_router(analytics_router)
+app.include_router(feedback_router)
+app.include_router(sustainability_router)
+app.include_router(recommendations_router)
 
 
 @app.get("/")

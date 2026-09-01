@@ -73,39 +73,44 @@ export default function PredictionHistory() {
 
   const exportPDF = () => {
     if (filteredHistory.length === 0) return;
-    
-    const doc = new jsPDF();
-    
-    doc.setFontSize(18);
-    doc.text('Prediction History Report', 14, 22);
-    
-    doc.setFontSize(11);
-    doc.setTextColor(100);
-    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 30);
-    
-    const tableColumn = ["Product Type", "Confidence", "Waste Category", "Recommendation", "Date"];
-    const tableRows = [];
-    
-    filteredHistory.forEach(row => {
-      const rowData = [
-        row.product_type || '',
-        `${row.confidence || 0}%`,
-        row.waste_category || '',
-        row.recommendation || '',
-        row.created_at ? new Date(row.created_at).toLocaleDateString() : ''
-      ];
-      tableRows.push(rowData);
-    });
-    
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: 40,
-      styles: { fontSize: 9 },
-      headStyles: { fillColor: [16, 185, 129] } // emerald-500
-    });
-    
-    doc.save('prediction_history.pdf');
+
+    try {
+      const doc = new jsPDF();
+
+      doc.setFontSize(18);
+      doc.text('Prediction History Report', 14, 22);
+
+      doc.setFontSize(11);
+      doc.setTextColor(100);
+      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 30);
+
+      const tableColumn = ['Product Type', 'Confidence', 'Waste Category', 'Recommendation', 'Date'];
+      const tableRows = [];
+
+      filteredHistory.forEach(row => {
+        const rowData = [
+          row.product_type || '',
+          `${row.confidence ?? 0}%`,
+          row.waste_category || '',
+          row.recommendation || '',
+          row.created_at ? new Date(row.created_at).toLocaleDateString() : ''
+        ];
+        tableRows.push(rowData);
+      });
+
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: 40,
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [16, 185, 129] }
+      });
+
+      doc.save('prediction_history.pdf');
+    } catch (error) {
+      console.error('Prediction PDF export failed', error);
+      alert('Failed to generate PDF.');
+    }
   };
 
   return (

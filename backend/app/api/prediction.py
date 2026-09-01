@@ -1,11 +1,13 @@
 from fastapi import APIRouter, File, UploadFile, Request, Depends, HTTPException
 from sqlalchemy.orm import Session
+from datetime import datetime
 import os
 
 from app.schemas.prediction import PredictionResponse, PredictionHistoryResponse
 from app.services.prediction_service import prediction_service
 from app.database.database import get_db
 from app.models.prediction_history import PredictionHistory
+from app.models.inventory import Inventory
 
 router = APIRouter(tags=["prediction"])
 
@@ -35,6 +37,10 @@ async def upload_image(file: UploadFile = File(...)):
         buffer.write(file_content)
     
     return {"message": "File uploaded successfully", "filename": file.filename, "file_path": file_path}
+
+@router.post("/predict/upload")
+async def upload_image_compat(file: UploadFile = File(...)):
+    return await upload_image(file)
 
 @router.post("/predict", response_model=PredictionResponse)
 async def predict(request: Request, filename: str, db: Session = Depends(get_db)):
@@ -90,6 +96,31 @@ async def predict(request: Request, filename: str, db: Session = Depends(get_db)
     except Exception as e:
         print(f"Server Error during prediction: {e}")
         raise HTTPException(status_code=503, detail="Database unavailable or server down.")
+
+@router.post("/predict/confirm")
+def confirm_prediction(payload: dict, db: Session = Depends(get_db)):
+    required_fields = ["filename", "batch_id", "fabric_type", "material_composition", "quantity", "recyclability", "collection_date"]
+    missing = [field for field in required_fields if not payload.get(field)]
+    if missing:
+        raise HTTPException(status_code=400, detail=f"Missing required fields: {', '.join(missing)}")
+
+    inventory_item = Inventory(
+        batch_id=str(payload["batch_id"]),
+        fabric_type=str(payload["fabric_type"]),
+        material_composition=str(payload["material_composition"]),
+        quantity=str(payload["quantity"]),
+        recyclability=str(payload["recyclability"]),
+        status=str(payload.get("status", "Pending Review")),
+        condition=str(payload.get("condition", "Unknown")),
+        collection_date=datetime.strptime(str(payload["collection_date"]), "%Y-%m-%d").date(),
+        sustainability_score=float(payload.get("sustainability_score", 0.0)),
+        waste_category=str(payload.get("waste_category", "Unknown")),
+    )
+    db.add(inventory_item)
+    db.commit()
+    db.refresh(inventory_item)
+    return {"message": "Prediction confirmed and saved to inventory", "inventory_id": inventory_item.id, "item": inventory_item}
+
 
 @router.get("/history", response_model=list[PredictionHistoryResponse])
 async def get_prediction_history(db: Session = Depends(get_db)):

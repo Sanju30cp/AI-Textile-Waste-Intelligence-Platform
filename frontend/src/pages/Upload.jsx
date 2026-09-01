@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { FiUploadCloud, FiFile, FiCheckCircle, FiLoader, FiCamera, FiAlertCircle } from 'react-icons/fi';
 import api from '../services/api';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 export default function Upload() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -64,7 +66,7 @@ export default function Upload() {
       
       let uploadRes;
       try {
-        uploadRes = await fetch("http://localhost:8000/upload", {
+        uploadRes = await fetch(`${API_URL}/upload`, {
           method: "POST",
           body: formData,
         });
@@ -80,7 +82,7 @@ export default function Upload() {
       // 2. Call predict endpoint
       let predictRes;
       try {
-        predictRes = await fetch(`http://localhost:8000/predict?filename=${uploadData.filename}`, {
+        predictRes = await fetch(`${API_URL}/predict?filename=${encodeURIComponent(uploadData.filename)}`, {
           method: "POST"
         });
       } catch (err) {

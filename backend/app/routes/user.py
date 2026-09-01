@@ -13,20 +13,20 @@ router = APIRouter(
     tags=["Users"]
 )
 
+auth_router = APIRouter(
+    prefix="/auth",
+    tags=["Authentication"]
+)
 
-@router.post("/register", response_model=UserResponse)
-def register_user(user: UserCreate, db: Session = Depends(get_db)):
 
-    # Check if email already exists
+def _register_user_logic(user: UserCreate, db: Session):
     existing_user = db.query(User).filter(User.email == user.email).first()
-
     if existing_user:
         raise HTTPException(
             status_code=400,
             detail="Email already registered"
         )
 
-    # Create new user
     new_user = User(
         full_name=user.full_name,
         email=user.email,
@@ -37,31 +37,23 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-
     return new_user
 
 
-@router.post("/login")
-def login_user(user: UserLogin, db: Session = Depends(get_db)):
-
-    # Find user by email
+def _login_user_logic(user: UserLogin, db: Session):
     db_user = db.query(User).filter(User.email == user.email).first()
-
-    # Check if user exists
     if db_user is None:
         raise HTTPException(
             status_code=401,
             detail="Invalid email or password"
         )
 
-    # Verify password
     if not verify_password(user.password, db_user.password):
         raise HTTPException(
             status_code=401,
             detail="Invalid email or password"
         )
 
-    # Generate JWT token
     access_token = create_access_token(
         {
             "sub": db_user.email,
@@ -79,6 +71,40 @@ def login_user(user: UserLogin, db: Session = Depends(get_db)):
             "role": db_user.role
         }
     }
+
+
+@router.post("/register", response_model=UserResponse)
+def register_user(user: UserCreate, db: Session = Depends(get_db)):
+    new_user = _register_user_logic(user, db)
+    return {
+        "id": new_user.id,
+        "user_id": new_user.id,
+        "full_name": new_user.full_name,
+        "email": new_user.email,
+        "role": new_user.role,
+    }
+
+
+@auth_router.post("/register", response_model=UserResponse)
+def auth_register_user(user: UserCreate, db: Session = Depends(get_db)):
+    new_user = _register_user_logic(user, db)
+    return {
+        "id": new_user.id,
+        "user_id": new_user.id,
+        "full_name": new_user.full_name,
+        "email": new_user.email,
+        "role": new_user.role,
+    }
+
+
+@router.post("/login")
+def login_user(user: UserLogin, db: Session = Depends(get_db)):
+    return _login_user_logic(user, db)
+
+
+@auth_router.post("/login")
+def auth_login_user(user: UserLogin, db: Session = Depends(get_db)):
+    return _login_user_logic(user, db)
 
 
 @router.get("/me")

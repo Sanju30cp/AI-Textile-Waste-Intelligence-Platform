@@ -3,23 +3,25 @@ import torch
 import torch.nn as nn
 from torchvision import models, transforms
 from PIL import Image
-import joblib
+import json
 import torch.nn.functional as F
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-base_dir = r"C:\Users\Sanju b\OneDrive\Desktop\Infosys Project\backend\ml"
-MODEL_PATH = os.path.join(base_dir, "models", "product_classifier.pth")
-ENCODER_PATH = os.path.join(base_dir, "dataset", "label_encoder.pkl")
+base_dir = r"C:\Users\Sanju b\OneDrive\Desktop\Infosys Project\backend"
+MODEL_PATH = os.path.join(base_dir, "ml", "models", "product_classifier.pth")
+CLASS_MAPPING_PATH = os.path.join(base_dir, "model", "class_mapping.json")
 
 model = None
-le = None
 class_names = []
 
-if os.path.exists(MODEL_PATH) and os.path.exists(ENCODER_PATH):
-    # Load LabelEncoder
-    le = joblib.load(ENCODER_PATH)
-    class_names = le.classes_
+if os.path.exists(MODEL_PATH) and os.path.exists(CLASS_MAPPING_PATH):
+    # Load class mapping
+    with open(CLASS_MAPPING_PATH, "r") as f:
+        class_dict = json.load(f)
+    
+    # Ensure ordered list
+    class_names = [class_dict[str(i)] for i in range(len(class_dict))]
     num_classes = len(class_names)
     
     # Initialize model
@@ -32,7 +34,7 @@ if os.path.exists(MODEL_PATH) and os.path.exists(ENCODER_PATH):
     model = model.to(DEVICE)
     model.eval()
 else:
-    print(f"WARNING: Model or encoder not found. Please ensure {MODEL_PATH} and {ENCODER_PATH} exist.")
+    print(f"WARNING: Model or mapping not found. Please ensure {MODEL_PATH} and {CLASS_MAPPING_PATH} exist.")
 
 # Preprocessing
 transform = transforms.Compose([
@@ -42,12 +44,14 @@ transform = transforms.Compose([
 ])
 
 def predict_image(image: Image.Image):
-    if model is None or le is None:
+    if model is None or not class_names:
         return {
             "fabric_type": "Model not loaded",
             "confidence": 0.0,
             "confidence_percentage": 0.0
         }
+
+
 
     # Convert to RGB
     image = image.convert("RGB")

@@ -7,6 +7,7 @@ export default function Inventory() {
   const [statusFilter, setStatusFilter] = useState('All');
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   useEffect(() => {
     fetchInventory();
@@ -118,6 +119,8 @@ export default function Inventory() {
                   <th className="px-6 py-4">Quantity</th>
                   <th className="px-6 py-4">Date Added</th>
                   <th className="px-6 py-4">Recyclability</th>
+                  <th className="px-6 py-4">Circularity</th>
+                  <th className="px-6 py-4">Recommended Action</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4 text-center">Actions</th>
                 </tr>
@@ -141,6 +144,8 @@ export default function Inventory() {
                         {row.recyclability}
                       </span>
                     </td>
+                    <td className="px-6 py-4 font-semibold text-emerald-700">{Number(row.circularity_score || 0).toFixed(1)}</td>
+                    <td className="px-6 py-4 text-xs font-semibold text-slate-600">{row.recommended_action || 'Pending'}</td>
                     <td className="px-6 py-4">
                       <select
                         value={row.status}
@@ -164,7 +169,7 @@ export default function Inventory() {
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-3">
                         <button 
-                          onClick={() => alert(`Reviewing Waste Log ID: ${row.batch_id}\nFabric: ${row.fabric_type}\nComposition: ${row.material_composition}`)}
+                          onClick={() => setSelectedItem(row)}
                           className="text-slate-400 hover:text-emerald-600 transition-colors p-1"
                           title="View Details"
                         >
@@ -191,6 +196,14 @@ export default function Inventory() {
           )}
         </div>
       </div>
+
+      {selectedItem && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" onClick={() => setSelectedItem(null)}>
+        <div className="max-w-lg rounded-2xl bg-white p-6 shadow-xl" onClick={(event) => event.stopPropagation()}>
+          <div className="flex items-start justify-between"><div><p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Sustainability Analysis</p><h2 className="mt-1 text-xl font-bold text-slate-900">{selectedItem.batch_id}</h2></div><button className="text-slate-400" onClick={() => setSelectedItem(null)} title="Close analysis">Close</button></div>
+          <div className="mt-5 grid grid-cols-2 gap-4 text-sm"><div><span className="text-slate-400">Material</span><p className="font-semibold">{selectedItem.fabric_type}</p></div><div><span className="text-slate-400">Condition</span><p className="font-semibold">{selectedItem.condition}</p></div><div><span className="text-slate-400">Circularity score</span><p className="font-semibold text-emerald-700">{selectedItem.circularity_score}/100</p></div><div><span className="text-slate-400">Sustainability score</span><p className="font-semibold text-emerald-700">{selectedItem.sustainability_score}/100</p></div><div><span className="text-slate-400">Waste category</span><p className="font-semibold">{selectedItem.waste_category}</p></div><div><span className="text-slate-400">Current status</span><p className="font-semibold">{selectedItem.status}</p></div></div>
+          <div className="mt-5 rounded-xl bg-emerald-50 p-4"><p className="text-xs font-bold uppercase tracking-wide text-emerald-800">Recommended action</p><p className="mt-1 font-semibold text-emerald-900">{selectedItem.recommended_action}</p><p className="mt-2 text-xs text-emerald-800">Estimated CO2 savings: {selectedItem.estimated_co2_savings} kg | Estimated water savings: {selectedItem.estimated_water_savings} L</p></div>
+        </div>
+      </div>}
 
     </div>
   );
